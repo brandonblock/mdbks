@@ -2,6 +2,7 @@ use clap::{Parser, ValueEnum};
 use dialoguer::Select;
 
 mod book_note;
+use book_note::BookNote;
 
 #[derive(Clone, Default, ValueEnum)]
 enum Command {
@@ -22,15 +23,7 @@ struct Args {
 
 #[derive(serde::Deserialize, Debug)]
 struct SearchResponse {
-    docs: Vec<BookResult>,
-}
-
-#[derive(serde::Deserialize, Debug)]
-struct BookResult {
-    title: String,
-    author_name: Option<Vec<String>>,
-    first_publish_year: Option<u32>,
-    // key: String,
+    docs: Vec<BookNote>,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

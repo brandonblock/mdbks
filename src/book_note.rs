@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 pub struct BookNote {
     // frontmatter
     pub title: String,
-    pub author: Vec<String>,
-    pub genre: Vec<String>,
-    pub published: chrono::NaiveDate,
+    pub author_name: Option<Vec<String>>,
+    pub genre: Option<Vec<String>>,
+    pub first_publish_year: Option<u32>,
     pub pages: Option<i32>,
     pub isbn: Option<String>,
-    pub reads: Vec<ReadSession>,
+    pub reads: Option<Vec<ReadSession>>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
