@@ -50,5 +50,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     println!("You chose: {}", display_items[selection]);
+
+    let book_data = openlibrary::book_select(&resp.docs[selection].isbn);
+    println!("full book data: {:?}", book_data);
     Ok(())
 }
