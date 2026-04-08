@@ -45,6 +45,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         eprintln!("No results found.")
     }
 
+    println!("raw doc:{:?}", resp.docs[0]);
+
     let display_items: Vec<String> = resp
         .docs
         .iter()
