@@ -1,10 +1,15 @@
 use clap::{Parser, ValueEnum};
 use dialoguer::Select;
 
+mod book_note;
+
 #[derive(Clone, Default, ValueEnum)]
 enum Command {
     #[default]
     New,
+    Finish,
+    NotFinish,
+    List,
 }
 
 #[derive(Parser)]
