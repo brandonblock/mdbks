@@ -39,6 +39,7 @@ pub struct BookData {
     pub subjects: Option<Vec<Subject>>,
     pub identifiers: Option<Identifiers>,
     pub publish_date: Option<String>,
+    pub isbn: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -74,8 +75,16 @@ pub fn book_select(isbns: &Option<Vec<String>>) -> Result<BookData, Box<dyn std:
         best_isbn
     );
 
-    let resp: HashMap<String, BookData> = reqwest::blocking::get(&url)?.json()?;
-    let book_data = resp.into_values().next().ok_or("No book data returned")?;
+    let resp: HashMap<String, BookData> = reqwest::blocking::get(&url)
+        .inspect_err(|e| log::error!("Failed to fetch from {}: {}", url, e))?
+        .json()
+        .inspect_err(|e| log::error!("Failed to parse book data JSON: {}", e))?;
+
+    let book_data = resp.into_values().next().ok_or_else(|| {
+        log::error!("No book data returned from API response");
+        "No book data returned"
+    })?;
+
     Ok(book_data)
 }
 

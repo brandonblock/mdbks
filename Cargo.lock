@@ -835,6 +835,7 @@ dependencies = [
  "chrono",
  "clap",
  "dialoguer",
+ "log",
  "reqwest",
  "serde",
  "serde_yaml",

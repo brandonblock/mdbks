@@ -52,7 +52,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("You chose: {}", display_items[selection]);
 
-    let book_data = openlibrary::book_select(&resp.docs[selection].isbn);
-    let result = create_new_note(book_data.unwrap());
+    let book_data = match openlibrary::book_select(&resp.docs[selection].isbn) {
+        Ok(data) => data,
+        Err(e) => {
+            log::error!("book_select failed: {}", e);
+            return Err(e); // or handle differently
+        }
+    };
+    let result = create_new_note(book_data);
     Ok(())
 }
