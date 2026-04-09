@@ -3,7 +3,7 @@ use dialoguer::Select;
 
 mod book_note;
 mod openlibrary;
-use book_note::{BookNote, create_new_note};
+use book_note::create_new_note;
 use openlibrary::SearchResponse;
 
 #[derive(Clone, Default, ValueEnum)]

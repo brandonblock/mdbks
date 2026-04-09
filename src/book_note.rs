@@ -1,11 +1,17 @@
 use serde::{Deserialize, Serialize};
 
-use crate::openlibrary::BookData;
+use crate::{book_note, openlibrary::BookData};
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct BookNote {
+    frontmatter: FrontMatter,
+    body: String,
+}
 
 // TODO: genre support
 // TODO: get isbn from identifiers
 #[derive(Deserialize, Serialize, Debug)]
-pub struct BookNote {
+struct FrontMatter {
     // frontmatter
     pub title: String,
     pub authors: Option<Vec<String>>,
@@ -17,21 +23,21 @@ pub struct BookNote {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct ReadSession {
+struct ReadSession {
     pub started: chrono::NaiveDate,
     pub finished: Option<chrono::NaiveDate>,
     pub status: Status,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub enum Status {
+enum Status {
     ToRead,
     Read,
     NotFinished,
 }
 
-impl BookNote {
-    pub fn new(
+impl FrontMatter {
+    fn new(
         title: String,
         authors: Option<Vec<String>>,
         published: Option<chrono::NaiveDate>,
@@ -43,7 +49,7 @@ impl BookNote {
             finished: None,
             status: Status::ToRead,
         }];
-        BookNote {
+        FrontMatter {
             title,
             authors,
             published,
@@ -66,7 +72,7 @@ pub fn create_new_note(book_data: BookData) -> Result<(), Box<dyn std::error::Er
             log::warn!("No valid publish date, using default");
             chrono::NaiveDate::from_ymd_opt(1970, 1, 1).unwrap()
         });
-    let new_note = BookNote::new(
+    let new_note = FrontMatter::new(
         book_data.title,
         Some(note_authors),
         Some(date),
@@ -75,6 +81,14 @@ pub fn create_new_note(book_data: BookData) -> Result<(), Box<dyn std::error::Er
     );
     println!("new book note struct: {:?}", new_note);
     // TODO: convert to md file
+    let f = std::fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        // TODO: Do not create new note if already exists. prompt to add read session or create another note with title variaton (two books w/ same title)
+        .truncate(true)
+        .open(new_note.title.clone())
+        .expect("couldn't open file");
+    serde_yaml::to_writer(f, &new_note).unwrap();
     Ok(())
 }
 
