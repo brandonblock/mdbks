@@ -6,6 +6,8 @@ mod openlibrary;
 use book_note::create_new_note;
 use openlibrary::SearchResponse;
 
+use crate::openlibrary::pick_isbn;
+
 #[derive(Clone, Default, ValueEnum)]
 enum Command {
     #[default]
@@ -24,6 +26,7 @@ struct Args {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    env_logger::init();
     let args = Args::parse();
 
     let resp: SearchResponse = openlibrary::book_search(&args.title)?;
@@ -52,13 +55,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("You chose: {}", display_items[selection]);
 
-    let book_data = match openlibrary::book_select(&resp.docs[selection].isbn) {
+    let isbn =
+        pick_isbn(&resp.docs[selection].isbn).ok_or("No suitable ISBN found for book, isbns")?;
+
+    let book_data = match openlibrary::book_select(&isbn) {
         Ok(data) => data,
         Err(e) => {
             log::error!("book_select failed: {}", e);
             return Err(e); // or handle differently
         }
     };
-    let result = create_new_note(book_data);
+    create_new_note(book_data)?;
     Ok(())
 }

@@ -1,7 +1,7 @@
 use std::io::Write;
 use serde::{Deserialize, Serialize};
 
-use crate::{book_note, openlibrary::BookData};
+use crate::{openlibrary::BookData};
 
 // TODO: genre support
 // TODO: get isbn from identifiers

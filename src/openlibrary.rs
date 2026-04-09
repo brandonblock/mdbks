@@ -65,14 +65,10 @@ pub struct Identifiers {
     pub isbn_13: Option<Vec<String>>,
 }
 
-pub fn book_select(isbns: &Option<Vec<String>>) -> Result<BookData, Box<dyn std::error::Error>> {
-    let best_isbn = pick_isbn(isbns).unwrap_or("nope".to_string());
-    //TODO: add error handling for no isbn and exit early
-    println!("best isbn: {}", best_isbn);
-
+pub fn book_select(isbn: &str) -> Result<BookData, Box<dyn std::error::Error>> {
     let url = format!(
         "https://openlibrary.org/api/books?bibkeys=ISBN:{}&jscmd=data&format=json",
-        best_isbn
+        isbn
     );
 
     let resp: HashMap<String, BookData> = reqwest::blocking::get(&url)
@@ -88,12 +84,12 @@ pub fn book_select(isbns: &Option<Vec<String>>) -> Result<BookData, Box<dyn std:
     Ok(book_data)
 }
 
-fn pick_isbn(isbns: &Option<Vec<String>>) -> Option<String> {
-    let isbns = isbns.as_ref()?; // Now isbns is &Vec<String>
+pub fn pick_isbn(isbns: &Option<Vec<String>>) -> Option<String> {
+    let isbns = isbns.as_ref()?;
 
     isbns
         .iter()
         .find(|isbn| isbn.len() == 13)
-        .or(isbns.first()) // .first() works on &Vec
+        .or(isbns.first())
         .cloned()
 }
