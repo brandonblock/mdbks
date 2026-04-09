@@ -3,12 +3,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{book_note, openlibrary::BookData};
 
-#[derive(Deserialize, Serialize, Debug)]
-pub struct BookNote {
-    frontmatter: FrontMatter,
-    body: String,
-}
-
 // TODO: genre support
 // TODO: get isbn from identifiers
 #[derive(Deserialize, Serialize, Debug)]
