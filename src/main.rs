@@ -3,6 +3,7 @@ use dialoguer::Select;
 
 mod book_note;
 mod openlibrary;
+use book_note::{BookNote, create_new_note};
 use openlibrary::SearchResponse;
 
 #[derive(Clone, Default, ValueEnum)]
@@ -52,6 +53,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("You chose: {}", display_items[selection]);
 
     let book_data = openlibrary::book_select(&resp.docs[selection].isbn);
-    println!("full book data: {:?}", book_data);
+    let result = create_new_note(book_data.unwrap());
     Ok(())
 }
