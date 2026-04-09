@@ -65,6 +65,7 @@ impl FrontMatter {
 pub fn create_new_note(book_data: BookData) -> Result<(), Box<dyn std::error::Error>> {
     let authors = book_data.authors.unwrap_or_default();
     let note_authors: Vec<String> = authors.iter().map(|a| a.name.clone()).collect();
+
     let date = book_data
         .publish_date
         .as_ref()
@@ -91,7 +92,7 @@ let filename = format!("{}.md", &frontmatter.title);
     let mut f = std::fs::File::create(&filename)?;
 
     writeln!(f, "---")?;
-    serde_yaml::to_writer(&f, &frontmatter)?;
+    serde_yml::to_writer(&f, &frontmatter)?;
     writeln!(f, "---")?;
     writeln!(f)?;
     writeln!(f, "## Description")?;
@@ -103,11 +104,10 @@ let filename = format!("{}.md", &frontmatter.title);
 }
 
 fn parse_publish_date(s: &str) -> Option<chrono::NaiveDate> {
-    // Try full date formats first
     let formats = [
-        "%Y-%m-%d",  // 1979-01-01
-        "%B %d, %Y", // January 1, 1979
-        "%b %d, %Y", // Jan 1, 1979
+        "%Y-%m-%d",
+        "%B %d, %Y",
+        "%b %d, %Y",
     ];
 
     for fmt in formats {
@@ -116,7 +116,6 @@ fn parse_publish_date(s: &str) -> Option<chrono::NaiveDate> {
         }
     }
 
-    // Fallback: year only → default to Jan 1
     if let Ok(year) = s.trim().parse::<i32>() {
         return chrono::NaiveDate::from_ymd_opt(year, 1, 1);
     }
