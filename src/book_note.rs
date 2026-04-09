@@ -1,3 +1,4 @@
+use std::io::Write;
 use serde::{Deserialize, Serialize};
 
 use crate::{book_note, openlibrary::BookData};
@@ -80,15 +81,24 @@ pub fn create_new_note(book_data: BookData) -> Result<(), Box<dyn std::error::Er
         // book_data.identifiers,
     );
     println!("new book note struct: {:?}", new_note);
-    // TODO: convert to md file
-    let f = std::fs::OpenOptions::new()
-        .write(true)
-        .create(true)
-        // TODO: Do not create new note if already exists. prompt to add read session or create another note with title variaton (two books w/ same title)
-        .truncate(true)
-        .open(new_note.title.clone())
-        .expect("couldn't open file");
-    serde_yaml::to_writer(f, &new_note).unwrap();
+    
+    write_to_markdown(new_note)
+}
+
+fn write_to_markdown(frontmatter: FrontMatter) -> Result<(), Box<dyn std::error::Error>> {
+
+let filename = format!("{}.md", &frontmatter.title);
+    let mut f = std::fs::File::create(&filename)?;
+
+    writeln!(f, "---")?;
+    serde_yaml::to_writer(&f, &frontmatter)?;
+    writeln!(f, "---")?;
+    writeln!(f)?;
+    writeln!(f, "## Description")?;
+    writeln!(f)?;
+    writeln!(f, "## Thoughts")?;
+    writeln!(f)?;
+
     Ok(())
 }
 
