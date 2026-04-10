@@ -1,44 +1,48 @@
-
 # Description
 
-mdbks is a note-taking utility for curating a book reading list, recording when books are read, and recording thoughts about the books. The frontmatter format should be Obsidian-compatible and based off of my existing book notes template. This is a personal tool catering only to my needs. Intended to replace Obsidian Bases and Books plugin with something smaller.
+mdbks is a note-taking utility for curating a book reading list, recording when books are read, and recording thoughts about the books. The frontmatter format should be Obsidian-compatible and based off of my existing book notes template. This is a personal tool catering only to my needs. Intended to replace Obsidian Bases and Books plugin with something smaller and bespoke.
 
 # Usage
 
-## Create a book note
+## `mdbks new <query>`
 
-`mdbks new <query| --isbn isbn>`
+- [x] search Open Library API
+- [x] display top results, prompt for selection
+- [ ] if no results -> interactive prompt for required fields
+- [ ] generate markdown note with frontmatter
+- [x] author names formatted as `[[wiki links]]`
 
-1. search Open Library API
-2. display top results, prompt for selection
-3. if no results -> interactive prompt for required fields
-4. generate markdown note with frontmatter
-5. open in helix
+## `mdbks start <path>`
 
-## update a note's status (to ensure consistent formatting)
+- [x] set status to 'Reading' and set start date
+- [ ] optional date override
 
-`mdbks finish <note title> [--status read|not_finished] [--date YYYY-MM-DD]`
+## `mdbks not/finish <path>`
 
-- tab autocomplete note name from books directory
-- set status=read (default) or to supplied status
-- update date_finished
-- prompt to record thoughts
-  - if yes -> open note in helix at thoughts heading in insert mode (possible?)
+- [x] set status to 'Read' or 'NotFinished' and set finish date if applicable
+- [ ] optional date override
+- [ ] open note in helix after update
+- [ ] open note at ## Thoughts section
+- [ ] editor set via config file
 
-## list books based on status
+## `mdbks reread <path>`
 
-`mdkbs list [--status STATUS] [--sort FIELD] [--desc]`
+- [ ] append new read session
+- [ ] no-op if `Status=ToRead`
+- [ ] trigger if `mdbks new` called on existing book
 
-- does what it says on the tin
+## `mdkbs list [--status STATUS] [--sort FIELD] [--desc]`
 
-# Implementation Details
+- [ ] does what it says on the tin
+- [ ] default behavior if no arg
 
-- tab completion for update (title) and list (status and fields)
-- automatic wiki links for authors and optionally genres
-- need to read line number that occurs after Thoughts heading for opening with `hx +LINE file.md`
+## Planned
+
+- [ ] tab completion on file names
+- [ ] set notes dir via config file
+- [ ] support parsing OpenLibrary subjects into basic `[[genres]]`
+- [ ] TUI w/ fuzzy search and configurable navigation keybindings (replace existing dialogs for consistency)
 
 # Open Questions
 
 - support author/genre search or leave the advanced navigation to pkm
-- how to handle mutiple authors
-- how to record multiple read events

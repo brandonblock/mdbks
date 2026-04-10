@@ -22,8 +22,9 @@ struct ReadSession {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-enum Status {
+pub enum Status {
     ToRead,
+    Reading,
     Read,
     NotFinished,
 }
@@ -66,6 +67,33 @@ pub fn create_new_note(work_data: WorkData) -> Result<(), Box<dyn std::error::Er
 
     let new_note = FrontMatter::new(work_data.title, authors, date);
     write_to_markdown(new_note, description)
+}
+
+pub fn update_status(path: &str, status: Status) -> Result<(), Box<dyn std::error::Error>> {
+    let book_note = std::fs::read_to_string(path)?;
+    let parts: Vec<&str> = book_note.splitn(3, "---\n").collect();
+    if parts.len() < 3 {
+        return Err("Invalid frontmatter format".into());
+    }
+
+    let mut frontmatter: FrontMatter = serde_yml::from_str(parts[1])?;
+
+    let session = frontmatter
+        .reads
+        .last_mut()
+        .ok_or("No read sessions found")?;
+
+    let now = chrono::Local::now().date_naive();
+    match (&session.status, &status) {
+        (Status::ToRead, Status::Reading) => session.started = Some(now),
+        (Status::Reading, Status::Read) => session.finished = Some(now),
+        (Status::Reading, Status::NotFinished) => {}
+        _ => return Err(format!("Invalid update: {:?} -> {:?}", session.status, status).into()),
+    }
+    session.status = status;
+    let new_frontmatter = serde_yml::to_string(&frontmatter)?;
+    std::fs::write(path, format!("---\n{}---\n{}", new_frontmatter, parts[2]))?;
+    Ok(())
 }
 
 fn write_to_markdown(
