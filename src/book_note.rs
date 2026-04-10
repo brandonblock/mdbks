@@ -75,14 +75,13 @@ pub fn create_new_note(book_data: BookData) -> Result<(), Box<dyn std::error::Er
         book_data.number_of_pages,
         // book_data.identifiers,
     );
-    println!("new book note struct: {:?}", new_note);
     
     write_to_markdown(new_note)
 }
 
 fn write_to_markdown(frontmatter: FrontMatter) -> Result<(), Box<dyn std::error::Error>> {
 
-let filename = format!("{}.md", &frontmatter.title);
+    let filename = format!("{}.md", &frontmatter.title);
     let mut f = std::fs::File::create(&filename)?;
 
     writeln!(f, "---")?;

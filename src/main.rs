@@ -1,5 +1,6 @@
 use clap::{Parser, ValueEnum};
 use dialoguer::Select;
+use env_logger;
 
 mod book_note;
 mod openlibrary;

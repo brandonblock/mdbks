@@ -26,7 +26,6 @@ pub fn book_search(title: &str) -> Result<SearchResponse, Box<dyn std::error::Er
         eprintln!("No results found.")
     }
 
-    // println!("raw doc:{:?}", resp.docs[0]);
     Ok(resp)
 }
 
