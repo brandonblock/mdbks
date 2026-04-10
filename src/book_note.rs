@@ -83,15 +83,13 @@ pub fn update_status(path: &str, status: Status) -> Result<(), Box<dyn std::erro
         .last_mut()
         .ok_or("No read sessions found")?;
 
-    session.status = status;
     let now = Some(chrono::Local::now().date_naive());
-    match session.status {
-        Status::ToRead => {}
-        Status::Reading => session.started = now,
-        Status::Read => session.finished = now,
-        Status::NotFinished => {}
+    match (&session.status, &status) {
+        (Status::ToRead, Status::Reading) => session.started = now,
+        (Status::Reading, Status::Read) => session.finished = now,
+        _ => return Err(format!("Invalid update: {:?}, -> {:?}", session.status, status).into()),
     }
-
+    session.status = status;
     let new_frontmatter = serde_yml::to_string(&frontmatter)?;
     std::fs::write(path, format!("---\n{}---\n{}", new_frontmatter, parts[2]))?;
     Ok(())
