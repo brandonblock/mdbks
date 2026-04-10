@@ -15,7 +15,7 @@ pub struct SearchDoc {
 
 pub fn book_search(title: &str) -> Result<SearchResponse, Box<dyn std::error::Error>> {
     let url = format!(
-        "https://openlibrary.org/search.json?q={}&fields=title,author_name,first_publish_year,key,isbn&limit=10",
+        "https://openlibrary.org/search.json?q={}&fields=title,author_name,first_publish_year,key&limit=10",
         urlencoding::encode(title)
     );
     let resp: SearchResponse = reqwest::blocking::get(&url)?.json()?;

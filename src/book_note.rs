@@ -43,26 +43,24 @@ impl FrontMatter {
             title,
             authors,
             published,
-            // pages,
-            // isbn,
             reads: sessions,
             first_added: chrono::Local::now().date_naive(),
         }
     }
 }
 
-pub fn create_new_note(
-    work_data: WorkData,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn create_new_note(work_data: WorkData) -> Result<(), Box<dyn std::error::Error>> {
     // TODO: Format authors as links [[author]]
 
     let date = work_data
         .first_publish_date
         .as_ref()
         .and_then(|d| parse_publish_date(d))
-    .or_else(|| {
-        work_data.search_publish_year.and_then(|y| chrono::NaiveDate::from_ymd_opt(y as i32, 1, 1))
-    });
+        .or_else(|| {
+            work_data
+                .search_publish_year
+                .and_then(|y| chrono::NaiveDate::from_ymd_opt(y as i32, 1, 1))
+        });
     let description = work_data.description.map(|d| d.into_string());
 
     let new_note = FrontMatter::new(work_data.title, work_data.authors, date);
