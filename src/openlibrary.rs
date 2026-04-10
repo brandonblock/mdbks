@@ -1,12 +1,12 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::collections::HashMap;
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct SearchResponse {
     pub docs: Vec<SearchDoc>,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct SearchDoc {
     pub title: String,
     pub author_name: Option<Vec<String>>,

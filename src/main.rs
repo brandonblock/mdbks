@@ -1,6 +1,5 @@
 use clap::{Parser, ValueEnum};
 use dialoguer::Select;
-use env_logger;
 
 mod book_note;
 mod openlibrary;
@@ -56,8 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("You chose: {}", display_items[selection]);
 
-    let isbn =
-        pick_isbn(&resp.docs[selection].isbn).ok_or("No suitable ISBN found for book, isbns")?;
+    let isbn = pick_isbn(&resp.docs[selection].isbn).ok_or("No suitable ISBN found for book")?;
 
     let book_data = match openlibrary::book_select(&isbn) {
         Ok(data) => data,

@@ -81,7 +81,7 @@ pub fn create_new_note(book_data: BookData) -> Result<(), Box<dyn std::error::Er
 
 fn write_to_markdown(frontmatter: FrontMatter) -> Result<(), Box<dyn std::error::Error>> {
     // TODO: get base path from config
-    let filename = format!("{}.md", &frontmatter.title);
+    let filename = format!("{}.md", sanitize_filename(&frontmatter.title));
     let mut f = std::fs::File::create(&filename)?;
 
     writeln!(f, "---")?;
@@ -110,4 +110,11 @@ fn parse_publish_date(s: &str) -> Option<chrono::NaiveDate> {
     }
 
     None
+}
+
+fn sanitize_filename(title: &str) -> String {
+    title.chars().map(|c| match c{
+        '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '-',
+        c => c, 
+    }).collect::<String>().trim().to_string()
 }
