@@ -1,10 +1,20 @@
 use clap::{Parser, ValueEnum};
 use dialoguer::Select;
 
+mod book_note;
+mod openlibrary;
+use book_note::create_new_note;
+use openlibrary::SearchResponse;
+
+use crate::openlibrary::pick_isbn;
+
 #[derive(Clone, Default, ValueEnum)]
 enum Command {
     #[default]
     New,
+    Finish,
+    NotFinish,
+    List,
 }
 
 #[derive(Parser)]
@@ -15,31 +25,11 @@ struct Args {
     title: String,
 }
 
-#[derive(serde::Deserialize, Debug)]
-struct SearchResponse {
-    docs: Vec<BookResult>,
-}
-
-#[derive(serde::Deserialize, Debug)]
-struct BookResult {
-    title: String,
-    author_name: Option<Vec<String>>,
-    first_publish_year: Option<u32>,
-    // key: String,
-}
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    env_logger::init();
     let args = Args::parse();
-    let url = format!(
-        "https://openlibrary.org/search.json?title={}&limit=10",
-        urlencoding::encode(&args.title)
-    );
-    let resp: SearchResponse = reqwest::blocking::get(&url)?.json()?;
 
-    if resp.docs.is_empty() {
-        eprintln!("No results found.")
-    }
-
+    let resp: SearchResponse = openlibrary::book_search(&args.title)?;
     let display_items: Vec<String> = resp
         .docs
         .iter()
@@ -64,5 +54,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     println!("You chose: {}", display_items[selection]);
+
+    let isbn = pick_isbn(&resp.docs[selection].isbn).ok_or("No suitable ISBN found for book")?;
+
+    let book_data = match openlibrary::book_select(&isbn) {
+        Ok(data) => data,
+        Err(e) => {
+            log::error!("book_select failed: {}", e);
+            return Err(e); // or handle differently
+        }
+    };
+    create_new_note(book_data)?;
     Ok(())
 }
