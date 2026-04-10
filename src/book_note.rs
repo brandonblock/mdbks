@@ -24,6 +24,7 @@ struct ReadSession {
 #[derive(Deserialize, Serialize, Debug)]
 enum Status {
     ToRead,
+    Reading,
     Read,
     NotFinished,
 }
@@ -69,6 +70,27 @@ pub fn create_new_note(work_data: WorkData) -> Result<(), Box<dyn std::error::Er
 }
 
 pub fn start_reading(path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let book_note = std::fs::read_to_string(path)?;
+    let parts: Vec<&str> = book_note.splitn(3, "---\n").collect();
+    if parts.len() < 3 {
+        return Err("Invalid frontmatter format".into());
+    }
+
+    let mut frontmatter: FrontMatter = serde_yml::from_str(parts[1])?;
+
+    let session = frontmatter
+        .reads
+        .last_mut()
+        .ok_or("No read sessions found")?;
+    if session.started.is_some() {
+        return Err("Book already started".into());
+    }
+
+    session.started = Some(chrono::Local::now().date_naive());
+    session.status = Status::Reading;
+
+    let new_frontmatter = serde_yml::to_string(&frontmatter)?;
+    std::fs::write(path, format!("---\n{}---\n{}", new_frontmatter, parts[2]))?;
     Ok(())
 }
 
