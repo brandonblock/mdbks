@@ -34,7 +34,9 @@ pub struct WorkData {
     pub first_publish_date: Option<String>,
     // TODO: Genre parsing to main categories
     pub subjects: Option<Vec<String>>,
+    #[serde(skip)]
     pub authors: Option<Vec<String>>,
+    #[serde(skip)]
     pub search_publish_year: Option<u32>,
 }
 
