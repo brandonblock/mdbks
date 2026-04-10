@@ -9,7 +9,7 @@ mdbks is a note-taking utility for curating a book reading list, recording when 
 - [x] search Open Library API
 - [x] display top results, prompt for selection
 - [ ] if no results -> interactive prompt for required fields
-- [ ] generate markdown note with frontmatter
+- [x] generate markdown note with frontmatter
 - [x] author names formatted as `[[wiki links]]`
 
 ## `mdbks start <path>`
