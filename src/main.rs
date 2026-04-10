@@ -3,15 +3,16 @@ use dialoguer::Select;
 
 mod book_note;
 mod openlibrary;
-use book_note::{create_new_note, start_reading};
+use book_note::{Status, create_new_note, update_status};
 use openlibrary::{SearchResponse, work_fetch};
 
 #[derive(Clone, Subcommand)]
 enum Command {
     New { title: String },
     Start { path: String },
-    Finish,
-    NotFinish,
+    Finish { path: String },
+    NotFinish { path: String },
+    ReRead { path: String },
     List,
 }
 
@@ -61,9 +62,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             create_new_note(work_data)
         }
-        Command::Start { path } => start_reading(&path),
-        Command::Finish => todo!(),
-        Command::NotFinish => todo!(),
+        Command::Start { path } => update_status(&path, Status::Reading),
+        Command::Finish { path } => update_status(&path, Status::Read),
+        // TODO: open editor to thoughts line
+        Command::NotFinish { path } => update_status(&path, Status::NotFinished),
+        // TODO: open editor to thoughts line
+        Command::ReRead { path } => todo!(),
         Command::List => todo!(),
     }
 }

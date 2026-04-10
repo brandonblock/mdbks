@@ -22,7 +22,7 @@ struct ReadSession {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-enum Status {
+pub enum Status {
     ToRead,
     Reading,
     Read,
@@ -69,7 +69,7 @@ pub fn create_new_note(work_data: WorkData) -> Result<(), Box<dyn std::error::Er
     write_to_markdown(new_note, description)
 }
 
-pub fn start_reading(path: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn update_status(path: &str, status: Status) -> Result<(), Box<dyn std::error::Error>> {
     let book_note = std::fs::read_to_string(path)?;
     let parts: Vec<&str> = book_note.splitn(3, "---\n").collect();
     if parts.len() < 3 {
@@ -82,12 +82,15 @@ pub fn start_reading(path: &str) -> Result<(), Box<dyn std::error::Error>> {
         .reads
         .last_mut()
         .ok_or("No read sessions found")?;
-    if session.started.is_some() {
-        return Err("Book already started".into());
-    }
 
-    session.started = Some(chrono::Local::now().date_naive());
-    session.status = Status::Reading;
+    session.status = status;
+    let now = Some(chrono::Local::now().date_naive());
+    match session.status {
+        Status::ToRead => {}
+        Status::Reading => session.started = now,
+        Status::Read => session.finished = now,
+        Status::NotFinished => {}
+    }
 
     let new_frontmatter = serde_yml::to_string(&frontmatter)?;
     std::fs::write(path, format!("---\n{}---\n{}", new_frontmatter, parts[2]))?;
