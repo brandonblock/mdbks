@@ -110,8 +110,13 @@ fn parse_publish_date(s: &str) -> Option<chrono::NaiveDate> {
 }
 
 fn sanitize_filename(title: &str) -> String {
-    title.chars().map(|c| match c {
-        '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '-',
-        c => c,
-    }).collect::<String>().trim().to_string()
+    title
+        .chars()
+        .map(|c| match c {
+            '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '-',
+            c => c,
+        })
+        .collect::<String>()
+        .trim()
+        .to_string()
 }
