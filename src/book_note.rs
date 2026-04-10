@@ -64,15 +64,12 @@ pub fn create_new_note(book_data: BookData) -> Result<(), Box<dyn std::error::Er
     let date = book_data
         .publish_date
         .as_ref()
-        .and_then(|d| parse_publish_date(d))
-        .unwrap_or_else(|| {
-            log::warn!("No valid publish date, using default");
-            chrono::NaiveDate::from_ymd_opt(1970, 1, 1).unwrap()
-        });
+        .and_then(|d| parse_publish_date(d));
+
     let new_note = FrontMatter::new(
         book_data.title,
         Some(note_authors),
-        Some(date),
+        date,
         book_data.number_of_pages,
         // book_data.identifiers,
     );
@@ -113,8 +110,8 @@ fn parse_publish_date(s: &str) -> Option<chrono::NaiveDate> {
 }
 
 fn sanitize_filename(title: &str) -> String {
-    title.chars().map(|c| match c{
+    title.chars().map(|c| match c {
         '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '-',
-        c => c, 
+        c => c,
     }).collect::<String>().trim().to_string()
 }
