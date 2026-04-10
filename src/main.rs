@@ -63,9 +63,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             create_new_note(work_data)
         }
         Command::Start { path } => update_status(&path, Status::Reading),
-        Command::Finish { path } => update_status(&path, Status::Read),
-        // TODO: open editor to thoughts line
-        Command::NotFinish { path } => update_status(&path, Status::NotFinished),
+        Command::Finish { path } => {
+            update_status(&path, Status::Read)?;
+            std::process::Command::new("hx").arg(&path).status()?;
+            Ok(())
+        }
+        Command::NotFinish { path } => {
+            update_status(&path, Status::NotFinished)?;
+            std::process::Command::new("hx").arg(&path).status()?;
+            Ok(())
+        }
         // TODO: open editor to thoughts line
         Command::ReRead { path } => todo!(),
         Command::List => todo!(),
