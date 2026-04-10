@@ -62,8 +62,11 @@ pub fn create_new_note(work_data: WorkData) -> Result<(), Box<dyn std::error::Er
                 .and_then(|y| chrono::NaiveDate::from_ymd_opt(y as i32, 1, 1))
         });
     let description = work_data.description.map(|d| d.into_string());
+    let authors: Option<Vec<String>> = work_data.authors.map(|authors| {
+        authors.into_iter().map(|a| format!("[[{}]]", a)).collect()
+    });
 
-    let new_note = FrontMatter::new(work_data.title, work_data.authors, date);
+    let new_note = FrontMatter::new(work_data.title, authors, date);
     write_to_markdown(new_note, description)
 }
 
