@@ -53,8 +53,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .interact()
                 .unwrap();
 
-            println!("You chose: {}", display_items[selection]);
-
             let selected = &resp.docs[selection];
             let mut work_data = work_fetch(&selected.key)?;
             work_data.authors = selected.author_name.clone();

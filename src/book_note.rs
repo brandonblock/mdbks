@@ -88,7 +88,7 @@ pub fn update_status(path: &str, status: Status) -> Result<(), Box<dyn std::erro
         (Status::ToRead, Status::Reading) => session.started = Some(now),
         (Status::Reading, Status::Read) => session.finished = Some(now),
         (Status::Reading, Status::NotFinished) => {}
-        _ => return Err(format!("Invalid update: {:?}, -> {:?}", session.status, status).into()),
+        _ => return Err(format!("Invalid update: {:?} -> {:?}", session.status, status).into()),
     }
     session.status = status;
     let new_frontmatter = serde_yml::to_string(&frontmatter)?;
