@@ -10,8 +10,7 @@ pub struct SearchDoc {
     pub title: String,
     pub author_name: Option<Vec<String>>,
     pub first_publish_year: Option<u32>,
-    pub isbn: Option<Vec<String>>, // grab first for Books API lookup
-    pub key: String,               // fallback identifier
+    pub key: String, // fallback identifier
 }
 
 pub fn book_search(title: &str) -> Result<SearchResponse, Box<dyn std::error::Error>> {
@@ -33,7 +32,10 @@ pub struct WorkData {
     pub title: String,
     pub description: Option<Description>,
     pub first_publish_date: Option<String>,
+    // TODO: Genre parsing to main categories
     pub subjects: Option<Vec<String>>,
+    pub authors: Option<Vec<String>>,
+    pub search_publish_year: Option<u32>,
 }
 
 #[derive(Deserialize, Debug)]
