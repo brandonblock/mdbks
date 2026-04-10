@@ -1,7 +1,7 @@
-use std::io::Write;
 use serde::{Deserialize, Serialize};
+use std::io::Write;
 
-use crate::{openlibrary::BookData};
+use crate::openlibrary::BookData;
 
 // TODO: genre support
 // TODO: get isbn from identifiers
@@ -19,7 +19,7 @@ struct FrontMatter {
 
 #[derive(Deserialize, Serialize, Debug)]
 struct ReadSession {
-    pub started: chrono::NaiveDate,
+    pub started: Option<chrono::NaiveDate>,
     pub finished: Option<chrono::NaiveDate>,
     pub status: Status,
 }
@@ -40,7 +40,7 @@ impl FrontMatter {
         // isbn: Option<String>,
     ) -> Self {
         let sessions = vec![ReadSession {
-            started: chrono::Local::now().date_naive(),
+            started: None,
             finished: None,
             status: Status::ToRead,
         }];
@@ -58,6 +58,7 @@ impl FrontMatter {
 
 pub fn create_new_note(book_data: BookData) -> Result<(), Box<dyn std::error::Error>> {
     let authors = book_data.authors.unwrap_or_default();
+    // TODO: Format authors as links [[author]]
     let note_authors: Vec<String> = authors.iter().map(|a| a.name.clone()).collect();
 
     let date = book_data
@@ -75,12 +76,11 @@ pub fn create_new_note(book_data: BookData) -> Result<(), Box<dyn std::error::Er
         book_data.number_of_pages,
         // book_data.identifiers,
     );
-    
     write_to_markdown(new_note)
 }
 
 fn write_to_markdown(frontmatter: FrontMatter) -> Result<(), Box<dyn std::error::Error>> {
-
+    // TODO: get base path from config
     let filename = format!("{}.md", &frontmatter.title);
     let mut f = std::fs::File::create(&filename)?;
 
@@ -97,11 +97,7 @@ fn write_to_markdown(frontmatter: FrontMatter) -> Result<(), Box<dyn std::error:
 }
 
 fn parse_publish_date(s: &str) -> Option<chrono::NaiveDate> {
-    let formats = [
-        "%Y-%m-%d",
-        "%B %d, %Y",
-        "%b %d, %Y",
-    ];
+    let formats = ["%Y-%m-%d", "%B %d, %Y", "%b %d, %Y"];
 
     for fmt in formats {
         if let Ok(date) = chrono::NaiveDate::parse_from_str(s.trim(), fmt) {
