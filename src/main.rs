@@ -4,9 +4,7 @@ use dialoguer::Select;
 mod book_note;
 mod openlibrary;
 use book_note::create_new_note;
-use openlibrary::SearchResponse;
-
-use crate::openlibrary::pick_isbn;
+use openlibrary::{SearchResponse, work_fetch};
 
 #[derive(Clone, Default, ValueEnum)]
 enum Command {
@@ -55,15 +53,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("You chose: {}", display_items[selection]);
 
-    let isbn = pick_isbn(&resp.docs[selection].isbn).ok_or("No suitable ISBN found for book")?;
+    let selected = &resp.docs[selection];
+    let mut work_data = work_fetch(&selected.key)?;
+    work_data.authors = selected.author_name.clone();
+    work_data.search_publish_year = selected.first_publish_year;
 
-    let book_data = match openlibrary::book_select(&isbn) {
-        Ok(data) => data,
-        Err(e) => {
-            log::error!("book_select failed: {}", e);
-            return Err(e); // or handle differently
-        }
-    };
-    create_new_note(book_data)?;
-    Ok(())
+    create_new_note(work_data)
 }

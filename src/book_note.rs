@@ -1,18 +1,15 @@
 use serde::{Deserialize, Serialize};
 use std::io::Write;
 
-use crate::openlibrary::BookData;
+use crate::openlibrary::WorkData;
 
 // TODO: genre support
-// TODO: get isbn from identifiers
 #[derive(Deserialize, Serialize, Debug)]
 struct FrontMatter {
     // frontmatter
     pub title: String,
     pub authors: Option<Vec<String>>,
     pub published: Option<chrono::NaiveDate>,
-    pub pages: Option<u32>,
-    // pub isbn: Option<String>,
     pub reads: Vec<ReadSession>,
     pub first_added: chrono::NaiveDate,
 }
@@ -36,8 +33,6 @@ impl FrontMatter {
         title: String,
         authors: Option<Vec<String>>,
         published: Option<chrono::NaiveDate>,
-        pages: Option<u32>,
-        // isbn: Option<String>,
     ) -> Self {
         let sessions = vec![ReadSession {
             started: None,
@@ -48,35 +43,35 @@ impl FrontMatter {
             title,
             authors,
             published,
-            pages,
-            // isbn,
             reads: sessions,
             first_added: chrono::Local::now().date_naive(),
         }
     }
 }
 
-pub fn create_new_note(book_data: BookData) -> Result<(), Box<dyn std::error::Error>> {
-    let authors = book_data.authors.unwrap_or_default();
-    // TODO: Format authors as links [[author]]
-    let note_authors: Vec<String> = authors.iter().map(|a| a.name.clone()).collect();
-
-    let date = book_data
-        .publish_date
+pub fn create_new_note(work_data: WorkData) -> Result<(), Box<dyn std::error::Error>> {
+    let date = work_data
+        .first_publish_date
         .as_ref()
-        .and_then(|d| parse_publish_date(d));
+        .and_then(|d| parse_publish_date(d))
+        .or_else(|| {
+            work_data
+                .search_publish_year
+                .and_then(|y| chrono::NaiveDate::from_ymd_opt(y as i32, 1, 1))
+        });
+    let description = work_data.description.map(|d| d.into_string());
+    let authors: Option<Vec<String>> = work_data
+        .authors
+        .map(|authors| authors.into_iter().map(|a| format!("[[{}]]", a)).collect());
 
-    let new_note = FrontMatter::new(
-        book_data.title,
-        Some(note_authors),
-        date,
-        book_data.number_of_pages,
-        // book_data.identifiers,
-    );
-    write_to_markdown(new_note)
+    let new_note = FrontMatter::new(work_data.title, authors, date);
+    write_to_markdown(new_note, description)
 }
 
-fn write_to_markdown(frontmatter: FrontMatter) -> Result<(), Box<dyn std::error::Error>> {
+fn write_to_markdown(
+    frontmatter: FrontMatter,
+    description: Option<String>,
+) -> Result<(), Box<dyn std::error::Error>> {
     // TODO: get base path from config
     let filename = format!("{}.md", sanitize_filename(&frontmatter.title));
     let mut f = std::fs::File::create(&filename)?;
@@ -87,6 +82,10 @@ fn write_to_markdown(frontmatter: FrontMatter) -> Result<(), Box<dyn std::error:
     writeln!(f)?;
     writeln!(f, "## Description")?;
     writeln!(f)?;
+    if let Some(desc) = description {
+        writeln!(f, "{}", desc)?;
+        writeln!(f)?;
+    }
     writeln!(f, "## Thoughts")?;
     writeln!(f)?;
 
