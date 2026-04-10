@@ -63,6 +63,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             create_new_note(work_data)
         }
         Command::Start { path } => update_status(&path, Status::Reading),
+        // TODO: Set editor via config
+        // TODO: open editor at Thoughts section
         Command::Finish { path } => {
             update_status(&path, Status::Read)?;
             std::process::Command::new("hx").arg(&path).status()?;
@@ -73,7 +75,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             std::process::Command::new("hx").arg(&path).status()?;
             Ok(())
         }
-        // TODO: open editor to thoughts line
         Command::ReRead { path } => todo!(),
         Command::List => todo!(),
     }
