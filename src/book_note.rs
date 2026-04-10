@@ -83,10 +83,11 @@ pub fn update_status(path: &str, status: Status) -> Result<(), Box<dyn std::erro
         .last_mut()
         .ok_or("No read sessions found")?;
 
-    let now = Some(chrono::Local::now().date_naive());
+    let now = chrono::Local::now().date_naive();
     match (&session.status, &status) {
-        (Status::ToRead, Status::Reading) => session.started = now,
-        (Status::Reading, Status::Read) => session.finished = now,
+        (Status::ToRead, Status::Reading) => session.started = Some(now),
+        (Status::Reading, Status::Read) => session.finished = Some(now),
+        (Status::Reading, Status::NotFinished) => {}
         _ => return Err(format!("Invalid update: {:?}, -> {:?}", session.status, status).into()),
     }
     session.status = status;
