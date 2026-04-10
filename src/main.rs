@@ -1,16 +1,15 @@
-use clap::{Parser, ValueEnum};
+use clap::{Parser, Subcommand};
 use dialoguer::Select;
 
 mod book_note;
 mod openlibrary;
-use book_note::create_new_note;
+use book_note::{create_new_note, start_reading};
 use openlibrary::{SearchResponse, work_fetch};
 
-#[derive(Clone, Default, ValueEnum)]
+#[derive(Clone, Subcommand)]
 enum Command {
-    #[default]
-    New,
-    Start,
+    New { title: String },
+    Start { path: String },
     Finish,
     NotFinish,
     List,
@@ -19,9 +18,8 @@ enum Command {
 #[derive(Parser)]
 #[command(about = "Search OpenLibrary by title")]
 struct Args {
+    #[command(subcommand)]
     command: Command,
-    // user input title for search
-    title: String,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -29,8 +27,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     match args.command {
-        Command::New => {
-            let resp: SearchResponse = openlibrary::book_search(&args.title)?;
+        Command::New { title } => {
+            let resp: SearchResponse = openlibrary::book_search(&title)?;
             let display_items: Vec<String> = resp
                 .docs
                 .iter()
@@ -63,7 +61,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             create_new_note(work_data)
         }
-        Command::Start => todo!(),
+        Command::Start { path } => start_reading(&path),
         Command::Finish => todo!(),
         Command::NotFinish => todo!(),
         Command::List => todo!(),

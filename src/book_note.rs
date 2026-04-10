@@ -68,6 +68,10 @@ pub fn create_new_note(work_data: WorkData) -> Result<(), Box<dyn std::error::Er
     write_to_markdown(new_note, description)
 }
 
+pub fn start_reading(path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    Ok(())
+}
+
 fn write_to_markdown(
     frontmatter: FrontMatter,
     description: Option<String>,
