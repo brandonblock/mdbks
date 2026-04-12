@@ -22,6 +22,7 @@ struct ReadSession {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "snake_case")]
 pub enum Status {
     ToRead,
     Reading,

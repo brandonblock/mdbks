@@ -41,6 +41,7 @@ mdbks is a note-taking utility for curating a book reading list, recording when 
 ## Planned
 
 - [ ] tab completion on file names
+- [ ] set up author notes to be created /Authors
 - [ ] support parsing OpenLibrary subjects into basic `[[genres]]`
 - [ ] TUI w/ fuzzy search and configurable navigation keybindings (replace existing dialogs for consistency)
 
