@@ -50,7 +50,10 @@ impl FrontMatter {
     }
 }
 
-pub fn create_new_note(work_data: WorkData) -> Result<(), Box<dyn std::error::Error>> {
+pub fn create_new_note(
+    work_data: WorkData,
+    output_path: Option<String>,
+) -> Result<(), Box<dyn std::error::Error>> {
     let date = work_data
         .first_publish_date
         .as_ref()
@@ -66,7 +69,7 @@ pub fn create_new_note(work_data: WorkData) -> Result<(), Box<dyn std::error::Er
         .map(|authors| authors.into_iter().map(|a| format!("[[{}]]", a)).collect());
 
     let new_note = FrontMatter::new(work_data.title, authors, date);
-    write_to_markdown(new_note, description)
+    write_to_markdown(new_note, output_path, description)
 }
 
 pub fn update_status(path: &str, status: Status) -> Result<(), Box<dyn std::error::Error>> {
@@ -98,10 +101,16 @@ pub fn update_status(path: &str, status: Status) -> Result<(), Box<dyn std::erro
 
 fn write_to_markdown(
     frontmatter: FrontMatter,
+    output_path: Option<String>,
     description: Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // TODO: get base path from config
-    let filename = format!("{}.md", sanitize_filename(&frontmatter.title));
+    let filename = format!(
+        "{}{}.md",
+        output_path.unwrap_or("".to_string()),
+        sanitize_filename(&frontmatter.title)
+    );
+    println!("filename: {}", filename);
     let mut f = std::fs::File::create(&filename)?;
 
     writeln!(f, "---")?;
