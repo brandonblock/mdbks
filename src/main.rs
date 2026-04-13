@@ -3,16 +3,27 @@ use dialoguer::Select;
 
 mod book_note;
 mod openlibrary;
-use book_note::{Status, create_new_note, update_status};
-use openlibrary::{SearchResponse, work_fetch};
+use book_note::{create_new_note, update_status, Status};
+use openlibrary::{work_fetch, SearchResponse};
 
 #[derive(Clone, Subcommand)]
 enum Command {
-    New { title: String },
-    Start { path: String },
-    Finish { path: String },
-    NotFinish { path: String },
-    ReRead { path: String },
+    New {
+        title: String,
+        output_path: Option<String>,
+    },
+    Start {
+        path: String,
+    },
+    Finish {
+        path: String,
+    },
+    NotFinish {
+        path: String,
+    },
+    ReRead {
+        path: String,
+    },
     List,
 }
 
@@ -28,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     match args.command {
-        Command::New { title } => {
+        Command::New { title, output_path } => {
             let resp: SearchResponse = openlibrary::book_search(&title)?;
             let display_items: Vec<String> = resp
                 .docs
@@ -58,7 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             work_data.authors = selected.author_name.clone();
             work_data.search_publish_year = selected.first_publish_year;
 
-            create_new_note(work_data)
+            create_new_note(work_data, output_path)
         }
         Command::Start { path } => update_status(&path, Status::Reading),
         // TODO: Set editor via config
