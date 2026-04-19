@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use clap::{Parser, Subcommand};
 use dialoguer::Select;
 
@@ -10,7 +12,8 @@ use openlibrary::{work_fetch, SearchResponse};
 enum Command {
     New {
         title: String,
-        output_path: Option<String>,
+        #[clap(short, long)]
+        output_path: Option<PathBuf>,
     },
     Start {
         path: String,

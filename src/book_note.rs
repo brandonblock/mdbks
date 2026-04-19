@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::io::Write;
+use std::{io::Write, path::PathBuf};
 
 use crate::openlibrary::WorkData;
 
@@ -53,7 +53,7 @@ impl FrontMatter {
 
 pub fn create_new_note(
     work_data: WorkData,
-    output_path: Option<String>,
+    output_path: Option<PathBuf>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let date = work_data
         .first_publish_date
@@ -102,13 +102,13 @@ pub fn update_status(path: &str, status: Status) -> Result<(), Box<dyn std::erro
 
 fn write_to_markdown(
     frontmatter: FrontMatter,
-    output_path: Option<String>,
+    output_path: Option<PathBuf>,
     description: Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // TODO: get base path from config
     let filename = format!(
         "{}{}.md",
-        output_path.unwrap_or("".to_string()),
+        output_path.unwrap_or_else(|| PathBuf::from(".")).display(),
         sanitize_filename(&frontmatter.title)
     );
     println!("filename: {}", filename);
