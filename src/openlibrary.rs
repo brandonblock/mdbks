@@ -13,6 +13,7 @@ pub struct SearchDoc {
     pub key: String, // fallback identifier
 }
 
+// TODO: This should probably return a HashMap of title[key] to avoid the junk in the calling func in main
 pub fn book_search(title: &str) -> Result<SearchResponse, Box<dyn std::error::Error>> {
     let url = format!(
         "https://openlibrary.org/search.json?q={}&fields=title,author_name,first_publish_year,key&limit=10",

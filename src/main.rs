@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             work_data.authors = selected.author_name.clone();
             work_data.search_publish_year = selected.first_publish_year;
 
-            create_new_note(work_data, output_path)
+            create_new_note(work_data, output_path.unwrap_or(PathBuf::from(".")))
         }
         Command::Start { path } => update_status(&path, Status::Reading),
         // TODO: Set editor via config
