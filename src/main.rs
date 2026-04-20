@@ -97,5 +97,5 @@ fn find_line_after_thoughts(path: &Path) -> Option<usize> {
         .lines()
         .enumerate()
         .find(|(_, line)| line.contains("## Thoughts"))
-        .map(|(i, _)| i + 2)
+        .map(|(i, _)| i + 3)
 }

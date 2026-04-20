@@ -132,6 +132,7 @@ fn write_to_markdown(
     }
     writeln!(f, "## Thoughts")?;
     writeln!(f)?;
+    writeln!(f)?;
 
     Ok(())
 }
