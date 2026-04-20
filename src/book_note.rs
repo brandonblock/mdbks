@@ -73,7 +73,11 @@ pub fn create_new_note(
     write_to_markdown(new_note, output_path, description)
 }
 
-pub fn update_status(path: &str, status: Status) -> Result<(), Box<dyn std::error::Error>> {
+pub fn update_status(
+    path: &str,
+    status: Status,
+    date: chrono::NaiveDate,
+) -> Result<(), Box<dyn std::error::Error>> {
     let book_note = std::fs::read_to_string(path)?;
     let parts: Vec<&str> = book_note.splitn(3, "---\n").collect();
     if parts.len() < 3 {
@@ -87,10 +91,9 @@ pub fn update_status(path: &str, status: Status) -> Result<(), Box<dyn std::erro
         .last_mut()
         .ok_or("No read sessions found")?;
 
-    let now = chrono::Local::now().date_naive();
     match (&session.status, &status) {
-        (Status::ToRead, Status::Reading) => session.started = Some(now),
-        (Status::Reading, Status::Read) => session.finished = Some(now),
+        (Status::ToRead, Status::Reading) => session.started = Some(date),
+        (Status::Reading, Status::Read) => session.finished = Some(date),
         (Status::Reading, Status::NotFinished) => {}
         _ => return Err(format!("Invalid update: {:?} -> {:?}", session.status, status).into()),
     }
