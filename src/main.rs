@@ -17,9 +17,13 @@ enum Command {
     },
     Start {
         path: String,
+        #[clap(short, long)]
+        date: Option<chrono::NaiveDate>,
     },
     Finish {
         path: String,
+        #[clap(short, long)]
+        date: Option<chrono::NaiveDate>,
     },
     NotFinish {
         path: String,
@@ -58,15 +62,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             create_new_note(work_data, output.unwrap_or(PathBuf::from("./")))
         }
-        Command::Start { path } => update_status(&path, Status::Reading),
-        Command::Finish { path } => {
+        Command::Start { path, date } => update_status(
+            &path,
+            Status::Reading,
+            date.unwrap_or(chrono::Local::now().date_naive()),
+        ),
+        Command::Finish { path, date } => {
             // TODO: open editor at Thoughts section
-            update_status(&path, Status::Read)?;
+            update_status(
+                &path,
+                Status::Read,
+                date.unwrap_or(chrono::Local::now().date_naive()),
+            )?;
             std::process::Command::new("hx").arg(&path).status()?;
             Ok(())
         }
         Command::NotFinish { path } => {
-            update_status(&path, Status::NotFinished)?;
+            update_status(&path, Status::NotFinished, chrono::NaiveDate::default())?;
             std::process::Command::new("hx").arg(&path).status()?;
             Ok(())
         }
