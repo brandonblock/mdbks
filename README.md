@@ -10,9 +10,7 @@ mdbks is a note-taking utility for curating a book reading list, recording when 
 - [x] display top results, prompt for selection
 - [x] generate markdown note with frontmatter
 - [x] author names formatted as `[[wiki links]]`
-- [ ] set output path via arg
-- [ ] set output path via config file
-- [ ] if no results -> interactive prompt for required fields
+- [x] set output path via arg
 
 ## `mdbks start <path>`
 
@@ -25,7 +23,6 @@ mdbks is a note-taking utility for curating a book reading list, recording when 
 - [ ] optional finished date override
 - [x] open note in helix after update
 - [ ] open note at ## Thoughts section
-- [ ] editor set via config file
 
 ## `mdbks reread <path>`
 
@@ -41,10 +38,12 @@ mdbks is a note-taking utility for curating a book reading list, recording when 
 ## Planned
 
 - [ ] TODO: tests!
-- [ ] tab completion on file names
 - [ ] set up author notes to be created in /Authors in default dir
 - [ ] support parsing OpenLibrary subjects into basic `[[genres]]`
 - [ ] TUI w/ fuzzy search and configurable navigation keybindings (replace existing dialogs for consistency)
+  - [ ] set output path via config file
+  - [ ] if no results -> interactive prompt for required fields
+  - [ ] editor set via config file
 
 # Open Questions
 
