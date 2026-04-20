@@ -13,7 +13,7 @@ enum Command {
     New {
         title: String,
         #[clap(short, long)]
-        output_path: Option<PathBuf>,
+        output: Option<PathBuf>,
     },
     Start {
         path: String,
@@ -42,25 +42,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     match args.command {
-        Command::New { title, output_path } => {
+        Command::New { title, output } => {
             let resp: SearchResponse = openlibrary::book_search(&title)?;
-            let display_items: Vec<String> = resp
-                .docs
-                .iter()
-                .map(|d| {
-                    let author = d
-                        .author_name
-                        .as_ref()
-                        .map(|a| a.join(", "))
-                        .unwrap_or_else(|| "Unknown".into());
-                    let year = d
-                        .first_publish_year
-                        .map(|y| y.to_string())
-                        .unwrap_or_else(|| "??".into());
-                    format!("{} - {} - ({})", d.title, author, year)
-                })
-                .collect();
-
+            let display_items: Vec<String> = resp.display_items();
             let selection = Select::new()
                 .with_prompt("What do you choose?")
                 .items(&display_items)
@@ -72,12 +56,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             work_data.authors = selected.author_name.clone();
             work_data.search_publish_year = selected.first_publish_year;
 
-            create_new_note(work_data, output_path.unwrap_or(PathBuf::from(".")))
+            create_new_note(work_data, output.unwrap_or(PathBuf::from("./")))
         }
         Command::Start { path } => update_status(&path, Status::Reading),
-        // TODO: Set editor via config
-        // TODO: open editor at Thoughts section
         Command::Finish { path } => {
+            // TODO: open editor at Thoughts section
             update_status(&path, Status::Read)?;
             std::process::Command::new("hx").arg(&path).status()?;
             Ok(())
