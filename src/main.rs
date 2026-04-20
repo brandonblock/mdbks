@@ -74,16 +74,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Status::Read,
                 date.unwrap_or(chrono::Local::now().date_naive()),
             )?;
-            let arg = match find_line_after_thoughts(&path) {
-                Some(line) => format!("{}:{}", path.to_string_lossy(), line),
-                None => format!("{}", path.to_string_lossy()),
-            };
-            std::process::Command::new("hx").arg(arg).status()?;
+            std::process::Command::new("hx")
+                .arg(find_line_after_thoughts(&path))
+                .status()?;
             Ok(())
         }
         Command::NotFinish { path } => {
             update_status(&path, Status::NotFinished, chrono::NaiveDate::default())?;
-            std::process::Command::new("hx").arg(path).status()?;
+            std::process::Command::new("hx")
+                .arg(find_line_after_thoughts(&path))
+                .status()?;
             Ok(())
         }
         Command::ReRead { path } => todo!(),
@@ -91,11 +91,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn find_line_after_thoughts(path: &Path) -> Option<usize> {
-    let book_note = std::fs::read_to_string(path).ok()?;
-    book_note
+fn find_line_after_thoughts(path: &Path) -> String {
+    let book_note = std::fs::read_to_string(path).expect("aw damn");
+    let line = book_note
         .lines()
         .enumerate()
         .find(|(_, line)| line.contains("## Thoughts"))
-        .map(|(i, _)| i + 3)
+        .map(|(i, _)| i + 3);
+    if let Some(l) = line {
+        format!("{}:{}", path.to_string_lossy(), l)
+    } else {
+        format!("{}", path.to_string_lossy())
+    }
 }
