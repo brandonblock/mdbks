@@ -5,6 +5,26 @@ pub struct SearchResponse {
     pub docs: Vec<SearchDoc>,
 }
 
+impl SearchResponse {
+    pub fn display_items(&self) -> Vec<String> {
+        self.docs
+            .iter()
+            .map(|d| {
+                let author = d
+                    .author_name
+                    .as_ref()
+                    .map(|a| a.join(", "))
+                    .unwrap_or_else(|| "Unknown".into());
+                let year = d
+                    .first_publish_year
+                    .map(|y| y.to_string())
+                    .unwrap_or_else(|| "??".into());
+                format!("{} - {} - ({})", d.title, author, year)
+            })
+            .collect()
+    }
+}
+
 #[derive(Deserialize, Debug)]
 pub struct SearchDoc {
     pub title: String,
