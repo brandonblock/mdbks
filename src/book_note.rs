@@ -70,7 +70,7 @@ impl FrontMatter {
         status: Status,
         date: chrono::NaiveDate,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let session = self.reads.last_mut().ok_or("No read sessions found")?;
+        let session = self.reads.first_mut().ok_or("No read sessions found")?;
 
         match (&session.status, &status) {
             (Status::ToRead, Status::Reading) => session.started = Some(date),
@@ -83,14 +83,29 @@ impl FrontMatter {
         session.status = status;
         Ok(())
     }
-    pub fn add_read(&mut self) {
+    pub fn add_read(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let latest_session = self
+            .reads
+            .first_mut()
+            .ok_or(format!("{:?} is missing read sessions", self.title))?;
+
         let new_session = ReadSession {
             started: None,
             finished: None,
             status: Status::ToRead,
         };
 
+        match &latest_session.status {
+            Status::ToRead => {
+                return Err(format!("{}'s status is already 'to_read'", self.title).into());
+            }
+            Status::Reading => {
+                latest_session.status = Status::NotFinished;
+            }
+            _ => {}
+        }
         self.reads.insert(0, new_session);
+        Ok(())
     }
 }
 
@@ -130,9 +145,10 @@ pub fn update_status(
 }
 
 pub fn reread(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    // if
     let note = std::fs::read_to_string(path)?;
     let (mut frontmatter, body) = FrontMatter::from_note(&note)?;
-    frontmatter.add_read();
+    frontmatter.add_read()?;
     std::fs::write(path, frontmatter.to_note(body)?)?;
     Ok(())
 }
