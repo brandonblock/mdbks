@@ -113,7 +113,7 @@ fn write_to_markdown(
 ) -> Result<(), Box<dyn std::error::Error>> {
     // TODO: get base path from config
     let filename = format!(
-        "{}{}.md",
+        "{}/{}.md",
         output_path.display(),
         sanitize_filename(&frontmatter.title)
     );
