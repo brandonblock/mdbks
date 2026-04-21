@@ -1,3 +1,4 @@
+use chrono::Datelike;
 use serde::{Deserialize, Serialize};
 use std::fmt::Write as _;
 use std::fs::File;
@@ -17,7 +18,7 @@ use crate::openlibrary::WorkData;
 struct FrontMatter {
     pub title: String,
     pub authors: Option<Vec<String>>,
-    pub published: Option<chrono::NaiveDate>,
+    pub published: Option<i32>,
     pub reads: Vec<ReadSession>,
     pub first_added: chrono::NaiveDate,
 }
@@ -39,11 +40,7 @@ pub enum Status {
 }
 
 impl FrontMatter {
-    fn new(
-        title: String,
-        authors: Option<Vec<String>>,
-        published: Option<chrono::NaiveDate>,
-    ) -> Self {
+    fn new(title: String, authors: Option<Vec<String>>, published: Option<i32>) -> Self {
         let sessions = vec![ReadSession {
             started: None,
             finished: None,
@@ -119,11 +116,8 @@ pub fn create_new_note(
         .first_publish_date
         .as_ref()
         .and_then(|d| parse_publish_date(d))
-        .or_else(|| {
-            work_data
-                .search_publish_year
-                .and_then(|y| chrono::NaiveDate::from_ymd_opt(y as i32, 1, 1))
-        });
+        .or_else(|| work_data.search_publish_year.map(|y| y as i32));
+
     let description = work_data.description.map(|d| d.into_string());
     let authors: Option<Vec<String>> = work_data
         .authors
@@ -175,20 +169,15 @@ fn write_to_markdown(
     Ok(())
 }
 
-fn parse_publish_date(s: &str) -> Option<chrono::NaiveDate> {
+fn parse_publish_date(s: &str) -> Option<i32> {
     let formats = ["%Y-%m-%d", "%B %d, %Y", "%b %d, %Y"];
 
     for fmt in formats {
         if let Ok(date) = chrono::NaiveDate::parse_from_str(s.trim(), fmt) {
-            return Some(date);
+            return Some(date.year());
         }
     }
-
-    if let Ok(year) = s.trim().parse::<i32>() {
-        return chrono::NaiveDate::from_ymd_opt(year, 1, 1);
-    }
-
-    None
+    s.trim().parse::<i32>().ok()
 }
 
 fn sanitize_filename(title: &str) -> String {
