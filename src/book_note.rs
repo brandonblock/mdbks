@@ -147,7 +147,6 @@ pub fn update_status(
 }
 
 pub fn reread(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
-    // if
     let note = std::fs::read_to_string(path)?;
     let (mut frontmatter, body) = FrontMatter::from_note(&note)?;
     frontmatter.add_read()?;
@@ -168,7 +167,7 @@ fn write_to_markdown(
     out.push_str(&serde_yml::to_string(&frontmatter)?);
     out.push_str("---\n\n## Description\n\n");
     if let Some(desc) = description {
-        writeln!(out, "{desc}\n")?;
+        write!(out, "{desc}\n\n")?;
     }
     out.push_str("## Thoughts\n\n\n");
     let mut file = File::create_new(&path)?;

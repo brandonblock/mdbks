@@ -52,7 +52,6 @@ pub struct WorkData {
     pub title: String,
     pub description: Option<Description>,
     pub first_publish_date: Option<String>,
-    // pub subjects: Option<Vec<String>>,
     #[serde(skip)]
     pub authors: Option<Vec<String>>,
     #[serde(skip)]
