@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::{io::Write, path::PathBuf};
+use std::{
+    io::Write,
+    path::{Path, PathBuf},
+};
 
 use crate::openlibrary::WorkData;
 
@@ -74,7 +77,7 @@ pub fn create_new_note(
 }
 
 pub fn update_status(
-    path: &str,
+    path: &Path,
     status: Status,
     date: chrono::NaiveDate,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -110,7 +113,7 @@ fn write_to_markdown(
 ) -> Result<(), Box<dyn std::error::Error>> {
     // TODO: get base path from config
     let filename = format!(
-        "{}{}.md",
+        "{}/{}.md",
         output_path.display(),
         sanitize_filename(&frontmatter.title)
     );
@@ -128,6 +131,7 @@ fn write_to_markdown(
         writeln!(f)?;
     }
     writeln!(f, "## Thoughts")?;
+    writeln!(f)?;
     writeln!(f)?;
 
     Ok(())

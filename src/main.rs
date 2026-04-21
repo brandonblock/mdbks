@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 use dialoguer::Select;
@@ -16,20 +16,20 @@ enum Command {
         output: Option<PathBuf>,
     },
     Start {
-        path: String,
+        path: PathBuf,
         #[clap(short, long)]
         date: Option<chrono::NaiveDate>,
     },
     Finish {
-        path: String,
+        path: PathBuf,
         #[clap(short, long)]
         date: Option<chrono::NaiveDate>,
     },
     NotFinish {
-        path: String,
+        path: PathBuf,
     },
     ReRead {
-        path: String,
+        path: PathBuf,
     },
     List,
 }
@@ -74,15 +74,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Status::Read,
                 date.unwrap_or(chrono::Local::now().date_naive()),
             )?;
-            std::process::Command::new("hx").arg(&path).status()?;
+            std::process::Command::new("hx")
+                .arg(find_line_after_thoughts(&path))
+                .status()?;
             Ok(())
         }
         Command::NotFinish { path } => {
             update_status(&path, Status::NotFinished, chrono::NaiveDate::default())?;
-            std::process::Command::new("hx").arg(&path).status()?;
+            std::process::Command::new("hx")
+                .arg(find_line_after_thoughts(&path))
+                .status()?;
             Ok(())
         }
         Command::ReRead { path } => todo!(),
         Command::List => todo!(),
+    }
+}
+
+fn find_line_after_thoughts(path: &Path) -> String {
+    let book_note = std::fs::read_to_string(path).expect("aw damn");
+    let line = book_note
+        .lines()
+        .enumerate()
+        .find(|(_, line)| line.contains("## Thoughts"))
+        .map(|(i, _)| i + 3);
+    if let Some(l) = line {
+        format!("{}:{}", path.to_string_lossy(), l)
+    } else {
+        format!("{}", path.to_string_lossy())
     }
 }
