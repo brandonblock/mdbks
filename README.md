@@ -26,8 +26,8 @@ mdbks is a note-taking utility for curating a book reading list, recording when 
 
 ## `mdbks reread <path>`
 
-- [ ] append new read session
-- [ ] no-op if `Status=ToRead`
+- [x] append new read session
+- [x] no-op if `Status=ToRead`
 - [ ] trigger if `mdbks new` called on existing book
 
 ## Planned

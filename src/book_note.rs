@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Write as _;
+use std::fs::File;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use crate::openlibrary::WorkData;
@@ -169,8 +171,8 @@ fn write_to_markdown(
         writeln!(out, "{desc}\n")?;
     }
     out.push_str("## Thoughts\n\n\n");
-
-    std::fs::write(&path, out)?;
+    let mut file = File::create_new(&path)?;
+    file.write_all(out.as_bytes())?;
     Ok(())
 }
 
