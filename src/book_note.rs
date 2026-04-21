@@ -83,6 +83,15 @@ impl FrontMatter {
         session.status = status;
         Ok(())
     }
+    pub fn add_read(&mut self) {
+        let new_session = ReadSession {
+            started: None,
+            finished: None,
+            status: Status::ToRead,
+        };
+
+        self.reads.insert(0, new_session);
+    }
 }
 
 pub fn create_new_note(
@@ -120,17 +129,13 @@ pub fn update_status(
     Ok(())
 }
 
-// fn reread(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
-//     let book_note = std::fs::read_to_string(path)?;
-//     let parts: Vec<&str> = book_note.splitn(3, "---\n").collect();
-//     if parts.len() < 3 {
-//         return Err("Invalid frontmatter format".into());
-//     }
-
-//     let mut frontmatter: FrontMatter = serde_yml::from_str(parts[1])?;
-
-//     Ok(())
-// }
+pub fn reread(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    let note = std::fs::read_to_string(path)?;
+    let (mut frontmatter, body) = FrontMatter::from_note(&note)?;
+    frontmatter.add_read();
+    std::fs::write(path, frontmatter.to_note(body)?)?;
+    Ok(())
+}
 
 fn write_to_markdown(
     frontmatter: FrontMatter,

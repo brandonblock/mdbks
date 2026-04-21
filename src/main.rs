@@ -5,7 +5,7 @@ use dialoguer::Select;
 
 mod book_note;
 mod openlibrary;
-use book_note::{create_new_note, update_status, Status};
+use book_note::{create_new_note, reread, update_status, Status};
 use openlibrary::{work_fetch, SearchResponse};
 
 #[derive(Clone, Subcommand)]
@@ -84,7 +84,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .status()?;
             Ok(())
         }
-        Command::ReRead { path } => todo!(),
+        Command::ReRead { path } => {
+            reread(&path)?;
+            Ok(())
+        }
     }
 }
 
