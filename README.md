@@ -30,11 +30,6 @@ mdbks is a note-taking utility for curating a book reading list, recording when 
 - [ ] no-op if `Status=ToRead`
 - [ ] trigger if `mdbks new` called on existing book
 
-## `mdkbs list [--status STATUS] [--sort FIELD] [--desc]`
-
-- [ ] does what it says on the tin
-- [ ] default behavior if no arg
-
 ## Planned
 
 - [ ] TODO: tests!
@@ -45,7 +40,3 @@ mdbks is a note-taking utility for curating a book reading list, recording when 
   - [ ] set output path via config file
   - [ ] if no results -> interactive prompt for required fields
   - [ ] editor set via config file
-
-# Open Questions
-
-- support author/genre search or leave the advanced navigation to pkm
