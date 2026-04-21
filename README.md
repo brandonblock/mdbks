@@ -22,7 +22,7 @@ mdbks is a note-taking utility for curating a book reading list, recording when 
 - [x] set status to 'Read' or 'NotFinished' and set finish date if applicable
 - [x] optional finished date override
 - [x] open note in helix after update
-- [ ] open note at ## Thoughts section
+- [x] open note at ## Thoughts section
 
 ## `mdbks reread <path>`
 
