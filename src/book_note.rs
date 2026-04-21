@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::Write as _;
 use std::{
     io::Write,
     path::{Path, PathBuf},
@@ -111,29 +112,19 @@ fn write_to_markdown(
     output_path: PathBuf,
     description: Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // TODO: get base path from config
-    let filename = format!(
-        "{}/{}.md",
-        output_path.display(),
-        sanitize_filename(&frontmatter.title)
-    );
-    println!("filename: {}", filename);
-    let mut f = std::fs::File::create(&filename)?;
+    let path = output_path.join(format!("{}.md", sanitize_filename(&frontmatter.title)));
+    println!("filename: {}", path.display());
 
-    writeln!(f, "---")?;
-    serde_yml::to_writer(&f, &frontmatter)?;
-    writeln!(f, "---")?;
-    writeln!(f)?;
-    writeln!(f, "## Description")?;
-    writeln!(f)?;
+    let mut out = String::new();
+    out.push_str("---\n");
+    out.push_str(&serde_yml::to_string(&frontmatter)?);
+    out.push_str("---\n\n## Description\n\n");
     if let Some(desc) = description {
-        writeln!(f, "{}", desc)?;
-        writeln!(f)?;
+        writeln!(out, "{desc}\n")?;
     }
-    writeln!(f, "## Thoughts")?;
-    writeln!(f)?;
-    writeln!(f)?;
+    out.push_str("## Thoughts\n\n\n");
 
+    std::fs::write(&path, out)?;
     Ok(())
 }
 
