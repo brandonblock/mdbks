@@ -1,18 +1,24 @@
+use chrono::Datelike;
 use serde::{Deserialize, Serialize};
-use std::{
-    io::Write,
-    path::{Path, PathBuf},
-};
+use std::fmt::Write as _;
+use std::fs::File;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 
 use crate::openlibrary::WorkData;
 
-// TODO: genre support
+// TODO: move to this booknote model, reduce the naked funcs
+// #[derive(Deserialize, Serialize, Debug)]
+// struct BookNote {
+//     frontmatter: Frontmatter,
+//     body: string,
+// }
+
 #[derive(Deserialize, Serialize, Debug)]
 struct FrontMatter {
-    // frontmatter
     pub title: String,
     pub authors: Option<Vec<String>>,
-    pub published: Option<chrono::NaiveDate>,
+    pub published: Option<i32>,
     pub reads: Vec<ReadSession>,
     pub first_added: chrono::NaiveDate,
 }
@@ -34,11 +40,7 @@ pub enum Status {
 }
 
 impl FrontMatter {
-    fn new(
-        title: String,
-        authors: Option<Vec<String>>,
-        published: Option<chrono::NaiveDate>,
-    ) -> Self {
+    fn new(title: String, authors: Option<Vec<String>>, published: Option<i32>) -> Self {
         let sessions = vec![ReadSession {
             started: None,
             finished: None,
@@ -52,6 +54,58 @@ impl FrontMatter {
             first_added: chrono::Local::now().date_naive(),
         }
     }
+    pub fn from_note(s: &str) -> Result<(Self, &str), Box<dyn std::error::Error>> {
+        let parts: Vec<&str> = s.splitn(3, "---\n").collect();
+        if parts.len() < 3 {
+            return Err("Invalid frontmatter format".into());
+        }
+        Ok((serde_yml::from_str(parts[1])?, parts[2]))
+    }
+    pub fn to_note(&self, body: &str) -> Result<String, Box<dyn std::error::Error>> {
+        Ok(format!("---\n{}---\n{}", serde_yml::to_string(self)?, body))
+    }
+    pub fn update_status(
+        &mut self,
+        status: Status,
+        date: chrono::NaiveDate,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let session = self.reads.first_mut().ok_or("No read sessions found")?;
+
+        match (&session.status, &status) {
+            (Status::ToRead, Status::Reading) => session.started = Some(date),
+            (Status::Reading, Status::Read) => session.finished = Some(date),
+            (Status::Reading, Status::NotFinished) => {}
+            _ => {
+                return Err(format!("Invalid update: {:?} -> {:?}", session.status, status).into())
+            }
+        }
+        session.status = status;
+        Ok(())
+    }
+    pub fn add_read(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let latest_session = self
+            .reads
+            .first_mut()
+            .ok_or(format!("{:?} is missing read sessions", self.title))?;
+
+        let new_session = ReadSession {
+            started: None,
+            finished: None,
+            status: Status::ToRead,
+        };
+
+        match &latest_session.status {
+            Status::ToRead => {
+                return Err(format!("{}'s status is already 'to_read'", self.title).into());
+            }
+            Status::Reading => {
+                latest_session.status = Status::NotFinished;
+            }
+            _ => {}
+        }
+        self.reads.insert(0, new_session);
+        Ok(())
+    }
 }
 
 pub fn create_new_note(
@@ -62,11 +116,8 @@ pub fn create_new_note(
         .first_publish_date
         .as_ref()
         .and_then(|d| parse_publish_date(d))
-        .or_else(|| {
-            work_data
-                .search_publish_year
-                .and_then(|y| chrono::NaiveDate::from_ymd_opt(y as i32, 1, 1))
-        });
+        .or_else(|| work_data.search_publish_year.map(|y| y as i32));
+
     let description = work_data.description.map(|d| d.into_string());
     let authors: Option<Vec<String>> = work_data
         .authors
@@ -81,28 +132,19 @@ pub fn update_status(
     status: Status,
     date: chrono::NaiveDate,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let book_note = std::fs::read_to_string(path)?;
-    let parts: Vec<&str> = book_note.splitn(3, "---\n").collect();
-    if parts.len() < 3 {
-        return Err("Invalid frontmatter format".into());
-    }
+    let note = std::fs::read_to_string(path)?;
+    let (mut frontmatter, body) = FrontMatter::from_note(&note)?;
+    frontmatter.update_status(status, date)?;
 
-    let mut frontmatter: FrontMatter = serde_yml::from_str(parts[1])?;
+    std::fs::write(path, frontmatter.to_note(body)?)?;
+    Ok(())
+}
 
-    let session = frontmatter
-        .reads
-        .last_mut()
-        .ok_or("No read sessions found")?;
-
-    match (&session.status, &status) {
-        (Status::ToRead, Status::Reading) => session.started = Some(date),
-        (Status::Reading, Status::Read) => session.finished = Some(date),
-        (Status::Reading, Status::NotFinished) => {}
-        _ => return Err(format!("Invalid update: {:?} -> {:?}", session.status, status).into()),
-    }
-    session.status = status;
-    let new_frontmatter = serde_yml::to_string(&frontmatter)?;
-    std::fs::write(path, format!("---\n{}---\n{}", new_frontmatter, parts[2]))?;
+pub fn reread(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    let note = std::fs::read_to_string(path)?;
+    let (mut frontmatter, body) = FrontMatter::from_note(&note)?;
+    frontmatter.add_read()?;
+    std::fs::write(path, frontmatter.to_note(body)?)?;
     Ok(())
 }
 
@@ -111,46 +153,31 @@ fn write_to_markdown(
     output_path: PathBuf,
     description: Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // TODO: get base path from config
-    let filename = format!(
-        "{}/{}.md",
-        output_path.display(),
-        sanitize_filename(&frontmatter.title)
-    );
-    println!("filename: {}", filename);
-    let mut f = std::fs::File::create(&filename)?;
+    let path = output_path.join(format!("{}.md", sanitize_filename(&frontmatter.title)));
+    println!("filename: {}", path.display());
 
-    writeln!(f, "---")?;
-    serde_yml::to_writer(&f, &frontmatter)?;
-    writeln!(f, "---")?;
-    writeln!(f)?;
-    writeln!(f, "## Description")?;
-    writeln!(f)?;
+    let mut out = String::new();
+    out.push_str("---\n");
+    out.push_str(&serde_yml::to_string(&frontmatter)?);
+    out.push_str("---\n\n## Description\n\n");
     if let Some(desc) = description {
-        writeln!(f, "{}", desc)?;
-        writeln!(f)?;
+        write!(out, "{desc}\n\n")?;
     }
-    writeln!(f, "## Thoughts")?;
-    writeln!(f)?;
-    writeln!(f)?;
-
+    out.push_str("## Thoughts\n\n\n");
+    let mut file = File::create_new(&path)?;
+    file.write_all(out.as_bytes())?;
     Ok(())
 }
 
-fn parse_publish_date(s: &str) -> Option<chrono::NaiveDate> {
+fn parse_publish_date(s: &str) -> Option<i32> {
     let formats = ["%Y-%m-%d", "%B %d, %Y", "%b %d, %Y"];
 
     for fmt in formats {
         if let Ok(date) = chrono::NaiveDate::parse_from_str(s.trim(), fmt) {
-            return Some(date);
+            return Some(date.year());
         }
     }
-
-    if let Ok(year) = s.trim().parse::<i32>() {
-        return chrono::NaiveDate::from_ymd_opt(year, 1, 1);
-    }
-
-    None
+    s.trim().parse::<i32>().ok()
 }
 
 fn sanitize_filename(title: &str) -> String {

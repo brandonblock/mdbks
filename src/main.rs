@@ -5,7 +5,7 @@ use dialoguer::Select;
 
 mod book_note;
 mod openlibrary;
-use book_note::{create_new_note, update_status, Status};
+use book_note::{create_new_note, reread, update_status, Status};
 use openlibrary::{work_fetch, SearchResponse};
 
 #[derive(Clone, Subcommand)]
@@ -31,7 +31,6 @@ enum Command {
     ReRead {
         path: PathBuf,
     },
-    List,
 }
 
 #[derive(Parser)]
@@ -68,7 +67,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             date.unwrap_or(chrono::Local::now().date_naive()),
         ),
         Command::Finish { path, date } => {
-            // TODO: open editor at Thoughts section
             update_status(
                 &path,
                 Status::Read,
@@ -86,8 +84,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .status()?;
             Ok(())
         }
-        Command::ReRead { path } => todo!(),
-        Command::List => todo!(),
+        Command::ReRead { path } => {
+            reread(&path)?;
+            Ok(())
+        }
     }
 }
 

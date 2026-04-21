@@ -22,30 +22,24 @@ mdbks is a note-taking utility for curating a book reading list, recording when 
 - [x] set status to 'Read' or 'NotFinished' and set finish date if applicable
 - [x] optional finished date override
 - [x] open note in helix after update
-- [ ] open note at ## Thoughts section
+- [x] open note at ## Thoughts section
 
 ## `mdbks reread <path>`
 
-- [ ] append new read session
-- [ ] no-op if `Status=ToRead`
+- [x] append new read session
+- [x] no-op if `Status=ToRead`
 - [ ] trigger if `mdbks new` called on existing book
-
-## `mdkbs list [--status STATUS] [--sort FIELD] [--desc]`
-
-- [ ] does what it says on the tin
-- [ ] default behavior if no arg
 
 ## Planned
 
 - [ ] TODO: tests!
-- [ ] `[[series]]` linking
-- [ ] set up author notes to be created in /Authors in default dir
-- [ ] support parsing OpenLibrary subjects into basic `[[genres]]`
+- [ ] TODO: `[[series]]` linking
+- [ ] TODO: set up author notes to be created in /Authors in default dir
+- [ ] TODO: support parsing OpenLibrary subjects into basic `[[genres]]`
+
+## Phase 2
+
 - [ ] TUI w/ fuzzy search and configurable navigation keybindings (replace existing dialogs for consistency)
   - [ ] set output path via config file
   - [ ] if no results -> interactive prompt for required fields
   - [ ] editor set via config file
-
-# Open Questions
-
-- support author/genre search or leave the advanced navigation to pkm
