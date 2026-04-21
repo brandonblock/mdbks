@@ -31,7 +31,6 @@ enum Command {
     ReRead {
         path: PathBuf,
     },
-    List,
 }
 
 #[derive(Parser)]
@@ -68,7 +67,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             date.unwrap_or(chrono::Local::now().date_naive()),
         ),
         Command::Finish { path, date } => {
-            // TODO: open editor at Thoughts section
             update_status(
                 &path,
                 Status::Read,
@@ -87,7 +85,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
         Command::ReRead { path } => todo!(),
-        Command::List => todo!(),
     }
 }
 

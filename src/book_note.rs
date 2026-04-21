@@ -4,7 +4,13 @@ use std::path::{Path, PathBuf};
 
 use crate::openlibrary::WorkData;
 
-// TODO: genre support
+// TODO: move to this booknote model, reduce the naked funcs
+// #[derive(Deserialize, Serialize, Debug)]
+// struct BookNote {
+//     frontmatter: Frontmatter,
+//     body: string,
+// }
+
 #[derive(Deserialize, Serialize, Debug)]
 struct FrontMatter {
     pub title: String,

@@ -52,8 +52,7 @@ pub struct WorkData {
     pub title: String,
     pub description: Option<Description>,
     pub first_publish_date: Option<String>,
-    // TODO: Genre parsing to main categories
-    pub subjects: Option<Vec<String>>,
+    // pub subjects: Option<Vec<String>>,
     #[serde(skip)]
     pub authors: Option<Vec<String>>,
     #[serde(skip)]
