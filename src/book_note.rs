@@ -1,16 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Write as _;
-use std::{
-    io::Write,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use crate::openlibrary::WorkData;
 
 // TODO: genre support
 #[derive(Deserialize, Serialize, Debug)]
 struct FrontMatter {
-    // frontmatter
     pub title: String,
     pub authors: Option<Vec<String>>,
     pub published: Option<chrono::NaiveDate>,
@@ -53,6 +49,34 @@ impl FrontMatter {
             first_added: chrono::Local::now().date_naive(),
         }
     }
+    pub fn from_note(s: &str) -> Result<(Self, &str), Box<dyn std::error::Error>> {
+        let parts: Vec<&str> = s.splitn(3, "---\n").collect();
+        if parts.len() < 3 {
+            return Err("Invalid frontmatter format".into());
+        }
+        Ok((serde_yml::from_str(parts[1])?, parts[2]))
+    }
+    pub fn to_note(&self, body: &str) -> Result<String, Box<dyn std::error::Error>> {
+        Ok(format!("---\n{}---\n{}", serde_yml::to_string(self)?, body))
+    }
+    pub fn update_status(
+        &mut self,
+        status: Status,
+        date: chrono::NaiveDate,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let session = self.reads.last_mut().ok_or("No read sessions found")?;
+
+        match (&session.status, &status) {
+            (Status::ToRead, Status::Reading) => session.started = Some(date),
+            (Status::Reading, Status::Read) => session.finished = Some(date),
+            (Status::Reading, Status::NotFinished) => {}
+            _ => {
+                return Err(format!("Invalid update: {:?} -> {:?}", session.status, status).into())
+            }
+        }
+        session.status = status;
+        Ok(())
+    }
 }
 
 pub fn create_new_note(
@@ -82,30 +106,25 @@ pub fn update_status(
     status: Status,
     date: chrono::NaiveDate,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let book_note = std::fs::read_to_string(path)?;
-    let parts: Vec<&str> = book_note.splitn(3, "---\n").collect();
-    if parts.len() < 3 {
-        return Err("Invalid frontmatter format".into());
-    }
+    let note = std::fs::read_to_string(path)?;
+    let (mut frontmatter, body) = FrontMatter::from_note(&note)?;
+    frontmatter.update_status(status, date)?;
 
-    let mut frontmatter: FrontMatter = serde_yml::from_str(parts[1])?;
-
-    let session = frontmatter
-        .reads
-        .last_mut()
-        .ok_or("No read sessions found")?;
-
-    match (&session.status, &status) {
-        (Status::ToRead, Status::Reading) => session.started = Some(date),
-        (Status::Reading, Status::Read) => session.finished = Some(date),
-        (Status::Reading, Status::NotFinished) => {}
-        _ => return Err(format!("Invalid update: {:?} -> {:?}", session.status, status).into()),
-    }
-    session.status = status;
-    let new_frontmatter = serde_yml::to_string(&frontmatter)?;
-    std::fs::write(path, format!("---\n{}---\n{}", new_frontmatter, parts[2]))?;
+    std::fs::write(path, frontmatter.to_note(body)?)?;
     Ok(())
 }
+
+// fn reread(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+//     let book_note = std::fs::read_to_string(path)?;
+//     let parts: Vec<&str> = book_note.splitn(3, "---\n").collect();
+//     if parts.len() < 3 {
+//         return Err("Invalid frontmatter format".into());
+//     }
+
+//     let mut frontmatter: FrontMatter = serde_yml::from_str(parts[1])?;
+
+//     Ok(())
+// }
 
 fn write_to_markdown(
     frontmatter: FrontMatter,
