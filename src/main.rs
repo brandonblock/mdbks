@@ -1,12 +1,12 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use dialoguer::Select;
 
 mod book_note;
 mod openlibrary;
-use book_note::{create_new_note, reread, update_status, Status};
-use openlibrary::{work_fetch, SearchResponse};
+use book_note::{BookNote, FrontMatter, Status};
+use openlibrary::{work_fetch, WorkData};
 
 #[derive(Clone, Subcommand)]
 enum Command {
@@ -46,61 +46,59 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match args.command {
         Command::New { title, output } => {
-            let resp: SearchResponse = openlibrary::book_search(&title)?;
-            let display_items: Vec<String> = resp.display_items();
-            let selection = Select::new()
-                .with_prompt("What do you choose?")
-                .items(&display_items)
-                .interact()
-                .unwrap();
-
-            let selected = &resp.docs[selection];
-            let mut work_data = work_fetch(&selected.key)?;
-            work_data.authors = selected.author_name.clone();
-            work_data.search_publish_year = selected.first_publish_year;
-
-            create_new_note(work_data, output.unwrap_or(PathBuf::from("./")))
+            let (title, authors, year, description) = fetch_selected(&title)?.into_note_parts();
+            let note = BookNote::new(FrontMatter::new(title, authors, year), description);
+            note.create(&output.unwrap_or(PathBuf::from("./")).join(note.filename()))
         }
-        Command::Start { path, date } => update_status(
-            &path,
-            Status::Reading,
-            date.unwrap_or(chrono::Local::now().date_naive()),
-        ),
+        Command::Start { path, date } => {
+            let mut note = BookNote::from_file(&path)?;
+            note.update_status(
+                &path,
+                Status::Reading,
+                date.unwrap_or(chrono::Local::now().date_naive()),
+            )
+        }
         Command::Finish { path, date } => {
-            update_status(
+            let mut note = BookNote::from_file(&path)?;
+            note.update_status(
                 &path,
                 Status::Read,
                 date.unwrap_or(chrono::Local::now().date_naive()),
             )?;
-            std::process::Command::new("hx")
-                .arg(find_line_after_thoughts(&path))
-                .status()?;
-            Ok(())
+            open_in_editor(&note, &path)
         }
         Command::NotFinish { path } => {
-            update_status(&path, Status::NotFinished, chrono::NaiveDate::default())?;
-            std::process::Command::new("hx")
-                .arg(find_line_after_thoughts(&path))
-                .status()?;
-            Ok(())
+            let mut note = BookNote::from_file(&path)?;
+            note.update_status(&path, Status::NotFinished, chrono::NaiveDate::default())?;
+            open_in_editor(&note, &path)
         }
         Command::ReRead { path } => {
-            reread(&path)?;
-            Ok(())
+            let mut note = BookNote::from_file(&path)?;
+            note.reread(&path)
         }
     }
 }
 
-fn find_line_after_thoughts(path: &Path) -> String {
-    let book_note = std::fs::read_to_string(path).expect("aw damn");
-    let line = book_note
-        .lines()
-        .enumerate()
-        .find(|(_, line)| line.contains("## Thoughts"))
-        .map(|(i, _)| i + 3);
-    if let Some(l) = line {
-        format!("{}:{}", path.to_string_lossy(), l)
-    } else {
-        format!("{}", path.to_string_lossy())
-    }
+fn fetch_selected(title: &str) -> Result<WorkData, Box<dyn std::error::Error>> {
+    let resp = openlibrary::book_search(title)?;
+    let selection = Select::new()
+        .with_prompt("What do you choose?")
+        .items(resp.display_items())
+        .interact()?;
+    let selected = &resp.docs[selection];
+    let mut work_data = work_fetch(&selected.key)?;
+    work_data.authors = selected.author_name.clone();
+    work_data.search_publish_year = selected.first_publish_year;
+    Ok(work_data)
+}
+
+fn open_in_editor(note: &BookNote, path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+    std::process::Command::new("hx")
+        .arg(format!(
+            "{}:{}",
+            path.to_string_lossy(),
+            note.line_after_thoughts()?
+        ))
+        .status()?;
+    Ok(())
 }

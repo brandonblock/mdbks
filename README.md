@@ -28,13 +28,13 @@ mdbks is a note-taking utility for curating a book reading list, recording when 
 
 - [x] append new read session
 - [x] no-op if `Status=ToRead`
-- [ ] trigger if `mdbks new` called on existing book
 
 ## Planned
 
-- [ ] TODO: tests!
+- [ ] TODO: tests! (mostly to prevent unnoticed regression)
+- [ ] TODO: create author note if not exists in ./Authors
 - [ ] TODO: `[[series]]` linking
-- [ ] TODO: set up author notes to be created in /Authors in default dir
+- [ ] TODO: create series note if not in ./Series?
 - [ ] TODO: support parsing OpenLibrary subjects into basic `[[genres]]`
 
 ## Phase 2

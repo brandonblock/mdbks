@@ -1,3 +1,4 @@
+use chrono::Datelike;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -56,6 +57,36 @@ pub struct WorkData {
     pub authors: Option<Vec<String>>,
     #[serde(skip)]
     pub search_publish_year: Option<u32>,
+}
+impl WorkData {
+    fn resolved_year(&self) -> Option<i32> {
+        self.first_publish_date
+            .as_ref()
+            .and_then(|d| parse_publish_date(d))
+            .or_else(|| self.search_publish_year.map(|y| y as i32))
+    }
+    fn formatted_authors(&self) -> Option<Vec<String>> {
+        self.authors
+            .as_ref()
+            .map(|a| a.iter().map(|a| format!("[[{}]]", a)).collect())
+    }
+    pub fn into_note_parts(self) -> (String, Option<Vec<String>>, Option<i32>, Option<String>) {
+        let year = self.resolved_year();
+        let authors = self.formatted_authors();
+        let description = self.description.map(|d| d.into_string());
+        (self.title, authors, year, description)
+    }
+}
+
+fn parse_publish_date(s: &str) -> Option<i32> {
+    let formats = ["%Y-%m-%d", "%B %d, %Y", "%b %d, %Y"];
+
+    for fmt in formats {
+        if let Ok(date) = chrono::NaiveDate::parse_from_str(s.trim(), fmt) {
+            return Some(date.year());
+        }
+    }
+    s.trim().parse::<i32>().ok()
 }
 
 #[derive(Deserialize, Debug)]
