@@ -1,4 +1,7 @@
-use std::path::PathBuf;
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+};
 
 use clap::{Parser, Subcommand};
 use dialoguer::Select;
@@ -48,6 +51,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Command::New { title, output } => {
             let work_data = fetch_selected(&title)?;
             let raw_authors = &work_data.authors;
+            if let Some(authors) = raw_authors {
+                for author in authors {
+                    File::create_new(format!("Authors/{}.md", author))?;
+                }
+            }
             let (title, authors, year, description) = work_data.into_note_parts();
             let note = BookNote::new(FrontMatter::new(title, authors, year), description);
             note.create(&output.unwrap_or(PathBuf::from("./")).join(note.filename()))
@@ -94,7 +102,7 @@ fn fetch_selected(title: &str) -> Result<WorkData, Box<dyn std::error::Error>> {
     Ok(work_data)
 }
 
-fn open_in_editor(note: &BookNote, path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn open_in_editor(note: &BookNote, path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     std::process::Command::new("hx")
         .arg(format!(
             "{}:{}",
