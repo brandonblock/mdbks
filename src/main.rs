@@ -46,7 +46,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match args.command {
         Command::New { title, output } => {
-            let (title, authors, year, description) = fetch_selected(&title)?.into_note_parts();
+            let work_data = fetch_selected(&title)?;
+            let raw_authors = &work_data.authors;
+            let (title, authors, year, description) = work_data.into_note_parts();
             let note = BookNote::new(FrontMatter::new(title, authors, year), description);
             note.create(&output.unwrap_or(PathBuf::from("./")).join(note.filename()))
         }
