@@ -1,5 +1,6 @@
 use std::{
     fs::File,
+    io,
     path::{Path, PathBuf},
 };
 
@@ -53,7 +54,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let raw_authors = &work_data.authors;
             if let Some(authors) = raw_authors {
                 for author in authors {
-                    File::create_new(format!("Authors/{}.md", author))?;
+                    match File::create_new(format!("Authors/{}.md", author)) {
+                        Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {}
+                        result => {
+                            result?;
+                        }
+                    }
                 }
             }
             let (title, authors, year, description) = work_data.into_note_parts();
