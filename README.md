@@ -32,16 +32,13 @@ mdbks is a note-taking utility for curating a book reading list, recording when 
 ## Planned
 
 - [ ] TODO: tests! (mostly to prevent unnoticed regression)
-- [ ] TODO: create author note if not exists in ./Authors
 - [ ] TODO: `[[series]]` linking
-- [ ] TODO: create series note if not in ./Series?
 - [ ] TODO: support parsing OpenLibrary subjects into basic `[[genres]]`
+- [ ] TODO: an init command to ensure folder structure (author, series, etc)
 
-- [x] Clone raw authors from `WorkData` before `into_note_parts`
-- [ ] Format series as `[[series]]` set on frontmatter
-- [x] create author notes in `./Authors/` after book note create, swallow `AlreadyExists`
-- [ ] Add `series Option<string>` with serde skip if Option None
 - [ ] add `--series` flag to Command::New
+- [ ] Add `series Option<string>` with serde skip if Option None
+- [ ] Format series as `[[series]]` set on frontmatter
 - [ ] Create series note in `./Series/` after book note, swallow `AlreadyExists`
 
 ## Phase 2
