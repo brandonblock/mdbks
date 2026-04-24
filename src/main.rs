@@ -78,7 +78,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut note = BookNote::from_file(&path)?;
             note.update_status(
                 &path,
-                Status::Read,
+                Status::Done,
                 date.unwrap_or(chrono::Local::now().date_naive()),
             )?;
             open_in_editor(&note, &path)

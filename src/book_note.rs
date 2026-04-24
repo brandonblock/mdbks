@@ -112,7 +112,7 @@ pub struct ReadSession {
 pub enum Status {
     ToRead,
     Reading,
-    Read,
+    Done,
     NotFinished,
 }
 
@@ -165,7 +165,7 @@ impl FrontMatter {
 
         match (&session.status, &status) {
             (Status::ToRead, Status::Reading) => session.started = Some(date),
-            (Status::Reading, Status::Read) => session.finished = Some(date),
+            (Status::Reading, Status::Done) => session.finished = Some(date),
             (Status::Reading, Status::NotFinished) => {}
             _ => {
                 return Err(format!("Invalid update: {:?} -> {:?}", session.status, status).into())
