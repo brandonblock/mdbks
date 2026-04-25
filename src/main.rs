@@ -103,7 +103,13 @@ fn fetch_selected(title: &str) -> Result<WorkData, Box<dyn std::error::Error>> {
         .interact()?;
     let selected = &resp.docs[selection];
     let mut work_data = work_fetch(&selected.key)?;
-    work_data.authors = selected.author_name.clone();
+    // filter the period out of names for proper markdown-oxide link behaviors
+    work_data.authors = selected.author_name.clone().map(|authors| {
+        authors
+            .into_iter()
+            .map(|author| author.replace(".", ""))
+            .collect()
+    });
     work_data.search_publish_year = selected.first_publish_year;
     Ok(work_data)
 }
